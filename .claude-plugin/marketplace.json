@@ -1,0 +1,15 @@
+{
+  "name": "teamwork-skill",
+  "description": "The teamwork skill: multi-session missions for Claude Code.",
+  "owner": {
+    "name": "unh00k3d",
+    "url": "https://github.com/unh00k3d"
+  },
+  "plugins": [
+    {
+      "name": "teamwork",
+      "source": "./",
+      "description": "Run big missions with a self-organizing team of Claude Code sessions: an anchor, a spawned lead, and up to six members coordinating through a shared board."
+    }
+  ]
+}
