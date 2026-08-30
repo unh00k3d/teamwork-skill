@@ -31,7 +31,7 @@ npx skills add unh00k3d/teamwork-skill       # this project
 npx skills add unh00k3d/teamwork-skill -g    # everywhere
 ```
 
-The CLI can install skill folders for other agents too, but the protocol currently assumes Claude Code — it leans on session messaging (`ListAgents`/`SendMessage`) and the `claude` CLI in its spawn pattern. Making it agent-agnostic is on the list.
+The CLI can install skill folders for other agents too, but the protocol currently assumes Claude Code — it leans on session messaging (`ListAgents`/`SendMessage`) and the `claude` CLI in its spawn pattern. Making it agent-agnostic is on the [roadmap](#roadmap).
 
 As a Claude Code plugin:
 
@@ -83,6 +83,18 @@ If that trade isn't for you, edit the spawn pattern in `PROTOCOL.md` to a strict
 ## Why this shape
 
 Most multi-agent setups put an orchestrator in charge and make every agent report up through it. That orchestrator becomes the bottleneck and the single context window that dies first. Here the anchor deliberately stays out of the work precisely so its context lasts the whole mission, and the state lives in a file, so any member — lead included — can be replaced mid-mission without losing the plot.
+
+## Roadmap
+
+Roughly in order:
+
+- [ ] **Configurable spawn command.** The spawn pattern hardcodes `claude --dangerously-skip-permissions`. Make the command and flags a setting so a stricter permission mode doesn't mean hand-editing `PROTOCOL.md`.
+- [ ] **Agent-agnostic protocol.** The board is already just a markdown file any agent can edit. What's Claude Code-only is the wakeup channel (`ListAgents`/`SendMessage`) and the spawn command — needs a file-based wakeup fallback for agents without session messaging, then testing against other agents that read skill folders (Codex, Cursor, OpenCode).
+- [ ] **Mixed teams.** Once the protocol is agent-agnostic: a Codex member and a Claude Code member claiming tasks off the same board.
+- [ ] **Real mission transcripts.** Replace the illustrations with a recorded mission — asciinema plus the final `TEAM.md` as a case study.
+- [ ] **Windows.** Everything assumes tmux. WSL works today; native Windows needs a different session substrate.
+
+Ideas and PRs welcome — open an issue if one of these matters to you.
 
 ## License
 
