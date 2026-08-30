@@ -1,6 +1,17 @@
-# teamwork
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo.svg" alt="teamwork" width="400">
+  </picture>
+</p>
 
-A Claude Code skill for running big jobs with a team of sessions instead of one.
+<p align="center">A Claude Code skill for running big jobs with a team of sessions instead of one.</p>
+
+---
+
+<p align="center">
+  <img src="assets/how-it-works.svg" alt="You steer the anchor session; the anchor spawns a lead in tmux; the lead staffs up to six members; everyone coordinates through the TEAM.md board" width="720">
+</p>
 
 You type `/teamwork <mission>`. Your session becomes the **anchor** — your window into the team. It sets up a shared workspace, spawns a **lead** session in tmux, and steps back. The lead breaks the mission into tasks, staffs a team of up to six sessions, and drives the work against a verification bar it sets before anything else. You keep talking to your own session the whole time: ask for status, change scope mid-flight, review the result at the end.
 
@@ -13,7 +24,16 @@ A few rules make it hold together: members claim a task on the board before touc
 
 ## Install
 
-As a plugin:
+With the [skills CLI](https://skills.sh):
+
+```sh
+npx skills add unh00k3d/teamwork-skill       # this project
+npx skills add unh00k3d/teamwork-skill -g    # everywhere
+```
+
+The CLI can install skill folders for other agents too, but the protocol currently assumes Claude Code — it leans on session messaging (`ListAgents`/`SendMessage`) and the `claude` CLI in its spawn pattern. Making it agent-agnostic is on the list.
+
+As a Claude Code plugin:
 
 ```sh
 claude plugin marketplace add unh00k3d/teamwork-skill
@@ -36,6 +56,10 @@ From a Claude Code session in your project root:
 ```
 /teamwork port the API layer to the new client and get the integration suite green
 ```
+
+<p align="center">
+  <img src="assets/terminal.svg" alt="A mission starting: the skill scaffolds .team/, spawns the lead, and tmux ls shows one session per member" width="680">
+</p>
 
 Then watch it go. Useful things to know while a mission runs:
 

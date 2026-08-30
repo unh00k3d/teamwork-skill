@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 96" width="470" height="96" role="img" aria-label="teamwork">
+  <!-- mark: a tmux layout, one pane per session -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="16" width="88" height="64" rx="10" stroke="#0f172a" stroke-width="5"/>
+    <line x1="57" y1="16" x2="57" y2="80" stroke="#0f172a" stroke-width="4"/>
+    <line x1="57" y1="48" x2="96" y2="48" stroke="#0f172a" stroke-width="4"/>
+    <!-- lead pane -->
+    <polyline points="20,34 27,41 20,48" stroke="#10b981" stroke-width="5"/>
+    <line x1="20" y1="62" x2="44" y2="62" stroke="#94a3b8" stroke-width="5"/>
+    <!-- member panes -->
+    <polyline points="66,26 71,31 66,36" stroke="#64748b" stroke-width="4"/>
+    <polyline points="66,58 71,63 66,68" stroke="#64748b" stroke-width="4"/>
+  </g>
+  <text x="118" y="62" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="40" font-weight="600" letter-spacing="-1">
+    <tspan fill="#10b981">/</tspan><tspan fill="#0f172a">teamwork</tspan>
+  </text>
+</svg>
