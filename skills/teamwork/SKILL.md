@@ -6,27 +6,35 @@ disable-model-invocation: true
 
 # Teamwork
 
-You are the **anchor**: the human's window into a self-organizing team of Claude Code sessions. The mission is $ARGUMENTS (or established in the conversation). You scaffold the team workspace, spawn a lead, then stay light — the team runs itself by the protocol; you answer the human and relay steering. Leave the division of labour to the lead and the roster to the members: this conversation cannot hand off, so your context must stay small enough to outlive the mission.
+You are the **anchor**: the human's window into a self-organizing team of Claude Code sessions. The mission is $ARGUMENTS (or established in the conversation). You scaffold the team workspace, spawn a lead, then stay light — the team runs itself by the protocol; you answer the human and relay steering. Leave the division of labour to the lead and the roster to the members: your context should stay small enough to outlive the mission, and if it doesn't, you are replaceable (§4) — the team's state lives in `.team/`, never in you.
 
-## 1. Scaffold
+## 1. Settle the mission
 
-Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's base directory) — you hold the team to it, and its spawn pattern is how you'll create the lead. Then in the project root create:
+Before anything gets built, close the gaps that would otherwise be closed by rework. Put the binding questions to the human in one round, not a drip: what is explicitly **out** of scope; what is optional versus required; what a first-run user sees; what must keep working with no key, account or network; what is being built only because nobody said not to. The answers become the mission text you hand the lead.
+
+This is the cheapest leverage you have. A first mission passed the human's opening sentence through verbatim and then absorbed eight scope corrections mid-build — one feature was designed, built, kept for a documented reason, then deleted outright; another (a settings page, without which a promised feature could not produce a number) surfaced only near the end.
+
+## 2. Scaffold
+
+Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's base directory) — you hold the team to it, and its spawn pattern is how you'll create the lead. First, `git init` if this isn't already a repo — several sessions write to one tree, and without version control nobody can see who changed what and nothing can be undone (a first mission ran six writers in a directory with none). Then in the project root create, and commit:
 
 - `.team/PROTOCOL.md` — that file, copied verbatim.
 - `.team/TEAM.md` — from the template at the bottom of PROTOCOL.md, mission and slug filled in.
-- `.team/handoffs/` — empty.
+- `.team/CONTRACT.md` — empty; the lead fills it with interfaces, schemas and file ownership.
+- `.team/FOLLOW-UPS.md` — empty; where work found after the finish goes to wait for the human.
+- `.team/briefs/`, `.team/evidence/`, `.team/handoffs/` — empty.
 
 A `.team/` left by a previous mission is history, not scaffolding: keep its TEAM.md as `TEAM-<date>.md`, scaffold fresh, and add "read the previous mission's record" to the lead's brief.
 
-## 2. Spawn the lead
+## 3. Spawn the lead
 
 Call ListAgents once to learn your own session name. Then spawn `team-<slug>-lead` with the spawn pattern from PROTOCOL §Spawning a member.
 
-The lead's brief carries: the mission verbatim; read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; you are the lead — set the mission's verification bar as the first Decision, break the mission into board tasks, assemble your team (cap 6 including you), drive it to done against that bar; the anchor is <your session name> — register yourself on the roster, then report milestones and blockers to it.
+The lead's brief carries: the mission verbatim; read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; you are the lead — set the mission's verification bar as the first Decision, break the mission into board tasks, assemble your team (cap 6 including you), drive it to done against that bar; the anchor is <your session name> — register yourself on the roster, then report milestones and blockers to it; and size the team against the account's usage quota rather than against the cap of 6, since every session spends one shared budget — six Opus sessions exhausted a day's quota in ninety minutes on a first mission, and three longer-lived members would have bought more wall-clock than six short ones.
 
 The lead is live when capture-pane shows the brief submitted and the lead appears on the TEAM.md roster.
 
-## 3. Be the window
+## 4. Be the window
 
 While the team works, the human asks you for status and gives steering:
 
@@ -34,15 +42,19 @@ While the team works, the human asks you for status and gives steering:
 - Relay the human's steering — scope changes, priorities — to the lead, who re-plans the board.
 - A teammate reporting a stalled permission prompt: hand the human its attach command (`tmux attach -t team-<slug>-<role>`, detach Ctrl+b d). Answering a teammate's prompt yourself, or routing a declined action to another member, bypasses the human's permission decision.
 - A request for a member beyond the cap of 6 lands here: put it to the human, don't decide it.
+- The team shares one usage quota, so it runs out for everyone at once. The sessions survive in tmux and resume after the reset — get the reset time to the human and make sure someone wakes the team when it passes. A first mission lost five recoverable hours to a limit that had reset at 3am with nobody awake to restart anything.
+- Watch that the lead is leading. If it is reporting its own commits rather than its members', it has stopped staffing and started building — say so, to it.
 
 Teammate messages wake you; the board carries the rest. Poll nothing.
 
-## 4. Acceptance and refinement
+You can be replaced. If your own context runs out, the mission's state is in `.team/`, not in you: the successor session reads `TEAM.md`, `CONTRACT.md` and `FOLLOW-UPS.md`, registers itself on the roster as the anchor with its ref, marks the old anchor line retired, and messages the lead its new address. A first mission's anchor was superseded this way and the team never noticed — but only because the roster was current.
+
+## 5. Acceptance and refinement
 
 The lead reports mission-done only after its whole-mission integration check against the verification bar in Decisions. Verify independently — re-run that bar yourself (tests and build for code; spot-check the sources for research; re-probe for security) and spot-read the output — then present the result to the human and hold the team up while they review.
 
 Feedback loops back the way steering does: relay it to the lead, who turns it into board tasks and drives the round like any other work. For a localized tweak the human may instead attach to the responsible member and say it there — the claim rule puts that work on the board too. Rounds repeat until the human accepts.
 
-## 5. Teardown
+## 6. Teardown
 
 On acceptance: `tmux kill-session -t <tmux>` for every roster member. Complete when `tmux ls` shows no `team-<slug>-*` sessions. `.team/` stays as the mission record — a later mission's lead gets briefed on the old board and decisions. Close with a per-task summary from the board.

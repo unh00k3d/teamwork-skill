@@ -6,22 +6,48 @@ You are a member of a team of Claude Code sessions sharing one machine, one file
 
 Three sections, edited in place (template at the bottom):
 
-- **Roster** — one line per member: session name (from ListAgents), tmux session, role, status (active / handing-off / retired).
+- **Roster** — one line per member: session name (from ListAgents), tmux session, role, status (active / paused / handing-off / retired), and the `[ref]` its name needs.
 - **Board** — one line per task: id, description, status (open / claimed / done), owner, verification (how done was checked, against the mission's bar).
 - **Decisions** — dated one-liners for choices that bind everyone: the mission's verification bar (set first), interfaces, conventions, scope calls.
+
+One row per task, edited in place — a board that grows a second row for an id has stopped being a source of truth. Detail does not live here: the `verification` column cites a file under `.team/evidence/`, long-lived agreements live in `.team/CONTRACT.md` (interfaces, schemas, file ownership — binding, changed only through the lead), and a Decision's reasoning goes in the evidence file rather than the line. The anchor re-reads TEAM.md for every status question, so its size is a cost the whole team pays.
 
 ## Claiming
 
 Claim before you work: set yourself as owner on the board, then start. One owner per task; stay inside your claimed tasks' scope — the files, sections, or resources they cover. If you need something outside it, ask its owner or claim an open task that covers it. Work without a claim on the board doesn't exist.
 
-A task is **done** when it meets the mission's verification bar — the standard the lead recorded in Decisions — with the evidence noted on the board. The bar is domain-shaped: green tests and a clean build for code; source-cited coverage for research and analysis; a probed-everything checklist for security. Whatever it is, it must be checkable — an owner can tell done from not-done — not "looks finished". Then wake whoever the board shows is waiting on it.
+A **finding** gets an owner the moment it is reported — whoever owns the surface it lives in. Report it, then stop working it: on a first mission three members and the lead converged on one ten-line CSS defect, each re-deriving the same measurement. And work inside someone's seam is theirs **even when it is one line** — they are the one who knows whether your rename breaks their tests. Touch another member's files only when they are retired and unreplaced.
+
+A task is **done** when it meets the mission's verification bar — the standard the lead recorded in Decisions — with the evidence noted on the board. The bar is domain-shaped: green tests and a clean build for code; source-cited coverage for research and analysis; a probed-everything checklist for security. Whatever it is, it must be checkable — an owner can tell done from not-done — not "looks finished". Two things the first mission had to learn by amending its bar mid-flight, so set them at the start: measure against a **production build**, since dev servers emit framework noise that makes a "zero console errors" clause unmeetable in dev and trivial in prod; and **batch evidence re-capture at the end of a round** rather than per change, because a bar that re-shoots everything on every tweak makes each round cost more than the fix. Then wake whoever the board shows is waiting on it.
 
 ## Communication
 
+**Talk to each other, not through the lead.** A question about someone's code, data or design goes straight to the member who owns it; the lead hears about it only when the answer moves the board, the contract, or who owns what. A lead that relays is a bottleneck and a single point of failure. The first mission measured both states: while members talked sideways, 31% of all traffic was peer-to-peer and the sharpest defects in the run were found by one member reading another's surface — each caught what its author's own passing assertions could not. After a restart rebuilt the team as a star, peer traffic fell to 9% and the lead started doing the work itself. Those are the same failure.
+
+- **Know your neighbours.** Your brief names the members whose seams touch yours and what each owns. Message them before you build against their interface, and again after you change yours. If you own the API, expect the surface members in your inbox — answer them.
+- **Address by ref.** Session names get reissued: a retired member's name was handed to a live session mid-mission, and two sessions carried one name at the same time. Take names from the roster *with* their `[ref]` and use the ref wherever one is listed. A bare name that resolves to nothing means the roster moved — re-read it, don't guess.
+- **Instruments are shared property.** If you build something that unblocks your own verification — a driver, a probe, a fixture — broadcast it. One member wrote a private headless-browser driver that dissolved a bottleneck the whole team was queuing behind, and it spread only because the lead happened to notice.
 - After a board edit that concerns someone, wake them: one line — "board updated: <what changed>".
 - Broadcast = message every active roster name.
 - Waiting on a member: subscribe with SendMessage `{notify_when_idle: true}` (no message). Polling or "are you done?" messages mean this wiring is missing.
+- Escalate to the lead for arbitration, scope and contract changes — never for an answer another member already has.
 - Questions for the human go through the anchor (named on the roster).
+
+## Shared resources
+
+One machine means shared singletons: ports, browser profiles, the dev server, the database. **Prefer isolation over turn-taking** — your own port, your own browser `userDataDir`, your own copy of the database. A team that must take turns to verify anything runs one member at a time however many you spawned; a first mission serialised every browser check behind one profile and lost hours to a lock nobody owned.
+
+Where something genuinely cannot be duplicated, the lead assigns it in Decisions **before** anyone touches it, with a named order of use. Never infer who holds a lock from process age — read the lock. And never kill a process outside the mission's own workspace: what looks stale may be the human's own.
+
+## Liveness
+
+A silent member is not necessarily a working one. Sessions stop three ways and only one is a handoff:
+
+- **Usage limit** — the session is *paused*, not finished. It keeps its context, its tmux and its claims, and resumes when the quota resets. Don't retire it, don't reassign its work: note the reset time on the roster and tell the anchor, so the human knows when the team can run again.
+- **Killed** — VM restart, closed tmux, crash. Gone with its context. Its claims go back to `open` and the lead respawns the role from `.team/` — which is why the board and the contract are written for a reader who was never here.
+- **Handoff** — the only planned one.
+
+The lead sweeps the roster whenever the board goes quiet: `tmux ls` plus a `capture-pane` per member costs nothing and interrupts nobody. A member marked active that hasn't moved and doesn't answer is one of the first two — find out which before recording it as progress. On a first mission two members sat dead at a usage limit for eight hours while the roster still called them active and the board still showed their tasks claimed.
 
 ## Spawning a member
 
@@ -33,11 +59,17 @@ tmux send-keys -t team-<slug>-<role> "<brief>"
 tmux send-keys -t team-<slug>-<role> Enter
 ```
 
-Text and Enter are two separate send-keys calls — a single call's trailing Enter is swallowed by paste handling. The brief carries: read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; your role; the anchor's and your spawner's session names. The newcomer's first act after reading is registering itself on the roster; the spawner then broadcasts the arrival. A member is joined when it appears on the roster.
+Text and Enter are two separate send-keys calls — a single call's trailing Enter is swallowed by paste handling. For the same reason the brief itself does not travel through `send-keys`: **write it to `.team/briefs/<role>.md` and send a one-line pointer** — "you are <role> on team <slug>; read `.team/briefs/<role>.md` in full, then `.team/PROTOCOL.md` and `.team/TEAM.md`". A brief long enough to be useful is long enough to arrive mangled. The brief carries: read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; your role and the seam it owns; **the members whose seams touch yours — name, ref, and what each owns**; the anchor's and your spawner's names. Naming only the lead and the anchor is how a team becomes a star: a member talks to the sessions it was told about. The newcomer's first act after reading is registering itself on the roster and introducing itself to its neighbours; the spawner then broadcasts the arrival. A member is joined when it appears on the roster.
 
 ## Handoff
 
-When your remaining context budget runs low, hand off before you're forced to:
+Hand off when your context is **spent, not when it is exhausted**. The band is **200-300k used of a 1M window** — scale it if your window differs; the point is to go while there is still room to write a good handoff, not to squeeze the window dry. A first mission ran five members to 350-470k without a single handoff, which is how a team ends up with nobody who remembers why.
+
+Check at task boundaries, not mid-work: **when you take a task to done, look at where you are.** Past ~200k, don't claim a task that would carry you well past ~300k — hand off instead. Below the band, keep working. This is a judgment call, not a tripwire: a handoff mid-task is worse than a slightly late one, and a member who stops in the middle of something to write a doc has cost the team more than it saved. If you are deep past the band with a task still open, take it to a checkpoint a successor can pick up, then go.
+
+To see where you are, read your own status line: `tmux capture-pane -p -t <your tmux> | tail -3`. If it doesn't report context, go by your harness's own low-context warning — and treat that warning as *late*, not as the trigger.
+
+Then, to hand off:
 
 1. Write `.team/handoffs/<your-name>.md`: current state, decisions made, remaining work, file map, open questions.
 2. Spawn your successor — same tmux pattern, exempt from the cap since it replaces you. Brief = your role + read your handoff doc first.
@@ -48,7 +80,11 @@ The lead hands off like anyone else.
 
 ## Roles
 
-- **Lead**: sets the mission's verification bar as the first Decision, breaks the mission into board tasks, assembles the team, unblocks members, owns the whole-mission integration check against that bar, reports milestones and blockers to the anchor. How to divide the work is the lead's call — split along whatever seams keep members out of each other's way: file boundaries for code, subtopics or sources for research, targets or surfaces for security.
+- **Lead**: sets the mission's verification bar as the first Decision, breaks the mission into board tasks, assembles the team, unblocks members, sweeps the roster for liveness, keeps an eye on how much context members have left (`tmux capture-pane` reads a status line without interrupting anyone) and tells one to hand off when it hasn't noticed, owns the whole-mission integration check against that bar — **written up in `.team/INTEGRATION.md` when the bar is set, not when the work ends**, so every member can see the finish line it is building toward and the mission sentence gets checked clause by clause rather than from memory — calls the end of the work, reports milestones and blockers to the anchor. How to divide the work is the lead's call — split along whatever seams keep members out of each other's way: file boundaries for code, subtopics or sources for research, targets or surfaces for security. Record the **adjacencies** as well as the split — which task consumes which — because that is where members will need each other, and it is what their briefs must name. Re-plan the board at each milestone: the first split is a hypothesis, not the plan, and a board only ever appended to turns later work into a stream of ad-hoc discoveries.
+
+  **The lead's hands are `.team/`.** TEAM.md, CONTRACT.md, the briefs, the integration and follow-up records: those it writes. It reads anything. It does not edit the work — a lead holding a claim is a member, and the second claim is always easier than the first. The integration check is **read-only**: run the gates, probe, and put every defect you find back on the board with an owner. Fixing it yourself turns an integration check into a workstream. A task small enough to `sed` is small enough to hand to whoever owns those files. A lead that respawns to an empty roster has a staffing emergency, not a licence to become the team. One check catches all of it: **if your shell calls outnumber your messages, you have stopped leading** — a first mission's lead ran 1.5 shell calls per message, and its successor ran 4.2, which is a member's ratio.
+
+  **The lead calls the finish.** Polish rounds don't terminate on their own; each one finds the next. Once the bar is met, declare the work closed, put anything found afterwards in `.team/FOLLOW-UPS.md` for the human to triage, and report. Whether another round is worth it is the human's judgment, not the team's — a first mission ran three unbidden rounds while the human waited on an app they had not yet seen.
 - **Anchor**: the human's window, and only that — it stays off the board and off the roster's working rotation. Report blockers and milestones to it.
 - Everyone else: whatever the brief says, changeable by claiming differently on the board.
 
@@ -64,7 +100,7 @@ When the human spawns a stricter team (a different flag in the spawn pattern), a
     Mission: <mission>
 
     ## Roster
-    | name | tmux | role | status |
+    | name [ref] | tmux | role | status |
     |---|---|---|---|
 
     ## Board

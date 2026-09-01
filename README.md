@@ -18,9 +18,11 @@ You type `/teamwork <mission>`. Your session becomes the **anchor** — your win
 There's no orchestrator process and no framework underneath. Coordination is two things:
 
 - **`.team/TEAM.md`** — the single source of truth. A roster, a task board, and a decision log, edited in place by whoever is working.
-- **Claude Code's session message bus** — wakeups and questions only, never state. Nobody polls anybody.
+- **Claude Code's session message bus** — wakeups and questions only, never state. Nobody polls anybody, and members talk to each other directly rather than routing everything through the lead.
 
-A few rules make it hold together: members claim a task on the board before touching anything, one owner per task; "done" means checked against the mission's verification bar with the evidence noted on the board, not "looks finished"; and when a member's context runs low it writes a handoff doc and spawns its own successor, so the team outlives any single context window. The full ruleset is in [`PROTOCOL.md`](skills/teamwork/PROTOCOL.md) — it's short, and every member reads it first.
+Alongside the board, `.team/` collects what the team agrees and proves: `CONTRACT.md` for interfaces and file ownership, `INTEGRATION.md` for the finish line, `evidence/` for how each task was checked, `briefs/` and `handoffs/` for how members arrive and leave.
+
+A few rules make it hold together: members claim a task on the board before touching anything, one owner per task; "done" means checked against the mission's verification bar with the evidence noted on the board, not "looks finished"; and when a member has spent most of its context — at a task boundary, not mid-work — it writes a handoff doc and spawns its own successor, so the team outlives any single context window. The full ruleset is in [`PROTOCOL.md`](skills/teamwork/PROTOCOL.md) — it's short, and every member reads it first.
 
 ## Install
 
@@ -78,6 +80,7 @@ If that trade isn't for you, edit the spawn pattern in `PROTOCOL.md` to a strict
 
 - Claude Code with skills and session messaging (`ListAgents` / `SendMessage`) — any recent 2.x
 - tmux
+- Usage headroom. Every member spends the same account quota, so a six-session team burns it several times faster than you're used to. When it runs out the whole team stops at once; the sessions survive and resume after the reset, but nothing moves until then. Size the team accordingly — the skill tells the lead to.
 - One machine, one filesystem — members coordinate through files, so this doesn't span hosts
 
 ## Why this shape
