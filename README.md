@@ -70,11 +70,18 @@ Then watch it go. Useful things to know while a mission runs:
 - Every member is a real Claude Code session in its own tmux session. `tmux ls` shows them as `team-<slug>-<role>`, and `tmux attach -t team-<slug>-lead` drops you into any of them. Detach with `Ctrl+b d`.
 - When the lead reports done, the anchor re-verifies independently before presenting the result to you. Feedback loops back through the board until you accept, and teardown kills the tmux sessions. `.team/` stays behind as the mission record.
 
+## A real mission
+
+The protocol's rules mostly aren't guesses — they were written after a team of eleven
+sessions built a 29,000-line app across 45 board tasks, survived a VM restart, and failed in
+several ways worth documenting. [**The case study**](case-study/) has the numbers, what
+worked, and what broke, alongside the mission's real `TEAM.md`.
+
 ## Permissions — read this part
 
 By default, team members run with `--dangerously-skip-permissions`: every tool call auto-approves, so six sessions can work in parallel without stalling on prompts nobody is watching. The protocol tells members to keep the blast radius small (stay in the mission's directory, route anything destructive or outward-facing through you), but the flag means what it says. Run missions in a repo you can restore, or on a machine you don't mind an agent having.
 
-If that trade isn't for you, edit the spawn pattern in `PROTOCOL.md` to a stricter flag before installing. The protocol already covers that mode: a member that hits a prompt it can't pass marks the task blocked and moves on, and you answer the prompt by attaching to its tmux session.
+If that trade isn't for you, the anchor writes the spawn command onto a `Spawn:` line in `.team/TEAM.md` at the start of every mission, and every member reads it from there — so say what you want when the mission starts, or change that one line. The protocol already covers that mode: a member that hits a prompt it can't pass marks the task blocked and moves on, and you answer the prompt by attaching to its tmux session.
 
 ## Requirements
 
@@ -91,10 +98,10 @@ Most multi-agent setups put an orchestrator in charge and make every agent repor
 
 Roughly in order:
 
-- [ ] **Configurable spawn command.** The spawn pattern hardcodes `claude --dangerously-skip-permissions`. Make the command and flags a setting so a stricter permission mode doesn't mean hand-editing `PROTOCOL.md`.
+- [x] **Configurable spawn command.** ~~The spawn pattern hardcodes `claude --dangerously-skip-permissions`.~~ Done: the command lives on the `Spawn:` line of `.team/TEAM.md`, set once per mission by the anchor.
 - [ ] **Agent-agnostic protocol.** The board is already just a markdown file any agent can edit. What's Claude Code-only is the wakeup channel (`ListAgents`/`SendMessage`) and the spawn command — needs a file-based wakeup fallback for agents without session messaging, then testing against other agents that read skill folders (Codex, Cursor, OpenCode).
 - [ ] **Mixed teams.** Once the protocol is agent-agnostic: a Codex member and a Claude Code member claiming tasks off the same board.
-- [ ] **Real mission transcripts.** Replace the illustrations with a recorded mission — asciinema plus the final `TEAM.md` as a case study.
+- [ ] **An asciinema recording.** The written case study is in [`case-study/`](case-study/) with the real `TEAM.md`; what's still missing is a screen recording of a mission actually running.
 - [ ] **Windows.** Everything assumes tmux. WSL works today; native Windows needs a different session substrate.
 
 Ideas and PRs welcome — open an issue if one of these matters to you.

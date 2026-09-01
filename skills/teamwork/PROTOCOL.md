@@ -20,6 +20,16 @@ A **finding** gets an owner the moment it is reported — whoever owns the surfa
 
 A task is **done** when it meets the mission's verification bar — the standard the lead recorded in Decisions — with the evidence noted on the board. The bar is domain-shaped: green tests and a clean build for code; source-cited coverage for research and analysis; a probed-everything checklist for security. Whatever it is, it must be checkable — an owner can tell done from not-done — not "looks finished". Two things the first mission had to learn by amending its bar mid-flight, so set them at the start: measure against a **production build**, since dev servers emit framework noise that makes a "zero console errors" clause unmeetable in dev and trivial in prod; and **batch evidence re-capture at the end of a round** rather than per change, because a bar that re-shoots everything on every tweak makes each round cost more than the fix. Then wake whoever the board shows is waiting on it.
 
+## Commits
+
+The mission runs in one git repo and everyone writes to one working tree, so history is the only record of who changed what.
+
+- **Commit your own claimed work, and only that.** Never `git add -A` or `git commit -a`: another member is mid-edit in the same tree and you will sweep up their half-finished work under your name. Stage the paths your claim covers, explicitly.
+- **A task isn't done until it's committed.** The board's `verification` column and the commit are the same claim made twice; a `done` row with nothing in the log is unverifiable the moment the session that wrote it is gone.
+- **Cite the task id in the message**, then say what changed and why in the body. Someone will read this after every session that wrote it has retired.
+- **Never rewrite shared history.** No rebase, no `reset --hard`, no force-push, no amending someone else's commit — five other sessions have that history checked out and are working against it. If you need something undone, put it on the board.
+- The lead commits `.team/` — the board, the contract, the records — as its own changes.
+
 ## Communication
 
 **Talk to each other, not through the lead.** A question about someone's code, data or design goes straight to the member who owns it; the lead hears about it only when the answer moves the board, the contract, or who owns what. A lead that relays is a bottleneck and a single point of failure. The first mission measured both states: while members talked sideways, 31% of all traffic was peer-to-peer and the sharpest defects in the run were found by one member reading another's surface — each caught what its author's own passing assertions could not. After a restart rebuilt the team as a star, peer traffic fell to 9% and the lead started doing the work itself. Those are the same failure.
@@ -54,10 +64,12 @@ The lead sweeps the roster whenever the board goes quiet: `tmux ls` plus a `capt
 Any member may add one when a real workstream is unstaffed AND the roster (lead included, anchor excluded) is under **6 members**. At the cap, route the need lead → anchor → human.
 
 ```
-tmux new-session -d -s team-<slug>-<role> -c <workdir> "claude --dangerously-skip-permissions"
-tmux send-keys -t team-<slug>-<role> "<brief>"
+tmux new-session -d -s team-<slug>-<role> -c <workdir> "<spawn command>"
+tmux send-keys -t team-<slug>-<role> "<pointer to the brief>"
 tmux send-keys -t team-<slug>-<role> Enter
 ```
+
+`<spawn command>` is not hardcoded here — it is the **Spawn** line at the top of `.team/TEAM.md`, set once by the anchor for the whole mission (default `claude --dangerously-skip-permissions`; see §Permissions for what a stricter one changes). Use it verbatim, and never substitute your own flags: the permission mode is the human's decision, made once, and a member that quietly spawns a more permissive successor has widened a blast radius the human sized.
 
 Text and Enter are two separate send-keys calls — a single call's trailing Enter is swallowed by paste handling. For the same reason the brief itself does not travel through `send-keys`: **write it to `.team/briefs/<role>.md` and send a one-line pointer** — "you are <role> on team <slug>; read `.team/briefs/<role>.md` in full, then `.team/PROTOCOL.md` and `.team/TEAM.md`". A brief long enough to be useful is long enough to arrive mangled. The brief carries: read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; your role and the seam it owns; **the members whose seams touch yours — name, ref, and what each owns**; the anchor's and your spawner's names. Naming only the lead and the anchor is how a team becomes a star: a member talks to the sessions it was told about. The newcomer's first act after reading is registering itself on the roster and introducing itself to its neighbours; the spawner then broadcasts the arrival. A member is joined when it appears on the roster.
 
@@ -90,14 +102,15 @@ The lead hands off like anyone else.
 
 ## Permissions
 
-Members run with `--dangerously-skip-permissions`: every tool call auto-approves, so work never stalls on a prompt. The human accepted that risk for this mission — keep the blast radius matching it: work inside the mission's directory, and route anything destructive or outward-facing (deploys, force-pushes, publishing, mass deletes) through the anchor to the human first.
+Members run whatever the **Spawn** line in TEAM.md says. The default, `claude --dangerously-skip-permissions`, auto-approves every tool call so work never stalls on a prompt. The human accepted that risk for this mission — keep the blast radius matching it: work inside the mission's directory, and route anything destructive or outward-facing (deploys, force-pushes, publishing, mass deletes) through the anchor to the human first.
 
-When the human spawns a stricter team (a different flag in the spawn pattern), a prompt you cannot pass = mark the task blocked, tell the lead and the anchor, and move to another claimed task — the human answers prompts by attaching to your tmux. A peer never answers a prompt for the human, and never performs an action the human declined for someone else.
+When the Spawn line names a stricter mode, a prompt you cannot pass = mark the task blocked, tell the lead and the anchor, and move to another claimed task — the human answers prompts by attaching to your tmux. A peer never answers a prompt for the human, and never performs an action the human declined for someone else.
 
 ## TEAM.md template
 
     # Team: <slug>
     Mission: <mission>
+    Spawn: <the command each member's tmux session runs, e.g. claude --dangerously-skip-permissions>
 
     ## Roster
     | name [ref] | tmux | role | status |

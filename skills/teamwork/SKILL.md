@@ -19,7 +19,7 @@ This is the cheapest leverage you have. A first mission passed the human's openi
 Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's base directory) — you hold the team to it, and its spawn pattern is how you'll create the lead. First, `git init` if this isn't already a repo — several sessions write to one tree, and without version control nobody can see who changed what and nothing can be undone (a first mission ran six writers in a directory with none). Then in the project root create, and commit:
 
 - `.team/PROTOCOL.md` — that file, copied verbatim.
-- `.team/TEAM.md` — from the template at the bottom of PROTOCOL.md, mission and slug filled in.
+- `.team/TEAM.md` — from the template at the bottom of PROTOCOL.md, mission and slug filled in, plus the **Spawn** line: the command every member's tmux session runs. Default `claude --dangerously-skip-permissions`. It is the human's call, not yours — if they've said anything about permissions, or the mission touches anything they'd want to approve by hand, ask before defaulting. Every member reads this line instead of a flag baked into the protocol, so changing it changes the whole team.
 - `.team/CONTRACT.md` — empty; the lead fills it with interfaces, schemas and file ownership.
 - `.team/FOLLOW-UPS.md` — empty; where work found after the finish goes to wait for the human.
 - `.team/briefs/`, `.team/evidence/`, `.team/handoffs/` — empty.
@@ -42,7 +42,17 @@ While the team works, the human asks you for status and gives steering:
 - Relay the human's steering — scope changes, priorities — to the lead, who re-plans the board.
 - A teammate reporting a stalled permission prompt: hand the human its attach command (`tmux attach -t team-<slug>-<role>`, detach Ctrl+b d). Answering a teammate's prompt yourself, or routing a declined action to another member, bypasses the human's permission decision.
 - A request for a member beyond the cap of 6 lands here: put it to the human, don't decide it.
-- The team shares one usage quota, so it runs out for everyone at once. The sessions survive in tmux and resume after the reset — get the reset time to the human and make sure someone wakes the team when it passes. A first mission lost five recoverable hours to a limit that had reset at 3am with nobody awake to restart anything.
+- The team shares one usage quota, so it runs out for everyone at once. The sessions survive in tmux and resume after the reset, but nothing restarts them — so **schedule the wake yourself** rather than hoping someone is up for it. A first mission lost five recoverable hours to a limit that reset at 3am with nobody there:
+
+  ```sh
+  nohup sh -c 'sleep <seconds until reset>
+    for t in $(tmux ls -F "#S" | grep "^team-<slug>-"); do
+      tmux send-keys -t "$t" "quota reset — re-read .team/TEAM.md and resume your claims"
+      tmux send-keys -t "$t" Enter
+    done' >/dev/null 2>&1 &
+  ```
+
+  Tell the human the reset time as well — they may want the machine doing something else until then.
 - Watch that the lead is leading. If it is reporting its own commits rather than its members', it has stopped staffing and started building — say so, to it.
 
 Teammate messages wake you; the board carries the rest. Poll nothing.
