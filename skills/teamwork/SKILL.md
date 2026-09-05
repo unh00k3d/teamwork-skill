@@ -22,15 +22,18 @@ Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's bas
 - `.team/TEAM.md` — from the template at the bottom of PROTOCOL.md, mission and slug filled in, plus the **Spawn** line: the command every member's tmux session runs. Default `claude --dangerously-skip-permissions`. It is the human's call, not yours — if they've said anything about permissions, or the mission touches anything they'd want to approve by hand, ask before defaulting. Every member reads this line instead of a flag baked into the protocol, so changing it changes the whole team.
 - `.team/CONTRACT.md` — empty; the lead fills it with interfaces, schemas and file ownership.
 - `.team/FOLLOW-UPS.md` — empty; where work found after the finish goes to wait for the human.
-- `.team/briefs/`, `.team/evidence/`, `.team/handoffs/` — empty.
+- `.team/briefs/`, `.team/evidence/`, `.team/handoffs/`, `.team/retro/` — empty.
+- `.team/vault/` — the project's memory across missions (PROTOCOL §Vault): `INDEX.md`, `notes/`, `instruments/`. Create it only if absent. An existing vault is the one part of `.team/` that is scaffolding, not history — leave it exactly as the previous mission left it.
 
-A `.team/` left by a previous mission is history, not scaffolding: keep its TEAM.md as `TEAM-<date>.md`, scaffold fresh, and add "read the previous mission's record" to the lead's brief.
+Two more header lines go beside **Spawn**, and both are the human's call, asked in the same round as permissions: **Models** — which models members may run (default: any; the lead picks per member, PROTOCOL §Spawning a member); **Vault** — `.team/vault`, plus a global vault path if the human keeps one for lessons that cross projects.
+
+A `.team/` left by a previous mission is history, not scaffolding: keep its TEAM.md as `TEAM-<date>.md`, scaffold fresh, and add "read the previous mission's record" to the lead's brief. The vault stays where it is.
 
 ## 3. Spawn the lead
 
-Call ListAgents once to learn your own session name. Then spawn `team-<slug>-lead` with the spawn pattern from PROTOCOL §Spawning a member.
+Call ListAgents once to learn your own session name. Then spawn `team-<slug>-lead` with the spawn pattern from PROTOCOL §Spawning a member, on the strongest model the **Models** line allows — the lead is the one role where judgment is the whole job.
 
-The lead's brief carries: the mission verbatim; read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; you are the lead — set the mission's verification bar as the first Decision, break the mission into board tasks, assemble your team (cap 6 including you), drive it to done against that bar; the anchor is <your session name> — register yourself on the roster, then report milestones and blockers to it; and size the team against the account's usage quota rather than against the cap of 6, since every session spends one shared budget — six Opus sessions exhausted a day's quota in ninety minutes on a first mission, and three longer-lived members would have bought more wall-clock than six short ones.
+The lead's brief carries: the mission verbatim; read `.team/PROTOCOL.md`, then `.team/TEAM.md`, then `.team/vault/INDEX.md` before anything else — the vault is what earlier missions on this project learned, and its instruments belong in the bar wherever they apply; you are the lead — set the mission's verification bar as the first Decision, break the mission into board tasks, assemble your team (cap 6 including you), choosing each member's model by the shape of its work and recording it on the roster, drive it to done against that bar; the anchor is <your session name> — register yourself on the roster, then report milestones and blockers to it; and size the team against the account's usage quota rather than against the cap of 6, since every session spends one shared budget — six Opus sessions exhausted a day's quota in ninety minutes on a first mission, and three longer-lived members would have bought more wall-clock than six short ones. Headcount and model mix are the two levers.
 
 The lead is live when capture-pane shows the brief submitted and the lead appears on the TEAM.md roster.
 
@@ -65,6 +68,8 @@ The lead reports mission-done only after its whole-mission integration check aga
 
 Feedback loops back the way steering does: relay it to the lead, who turns it into board tasks and drives the round like any other work. For a localized tweak the human may instead attach to the responsible member and say it there — the claim rule puts that work on the board too. Rounds repeat until the human accepts.
 
-## 6. Teardown
+## 6. Retrospective and teardown
 
-On acceptance: `tmux kill-session -t <tmux>` for every roster member. Complete when `tmux ls` shows no `team-<slug>-*` sessions. `.team/` stays as the mission record — a later mission's lead gets briefed on the old board and decisions. Close with a per-task summary from the board.
+On acceptance, tell the lead to run the retrospective (PROTOCOL §Retrospective) — it comes before teardown, because the members who know what broke are the ones about to be killed. When the lead reports retro-done, spot-read `.team/RETRO.md` and the newly promoted vault entries: each note cites its evidence, none carries this mission's ids or ports as if they were facts about the project, and the index has a line for each. Put the proposed protocol amendments to the human as they stand — the protocol changes through them, not through the team.
+
+Then `tmux kill-session -t <tmux>` for every roster member. Complete when `tmux ls` shows no `team-<slug>-*` sessions. `.team/` stays as the mission record, and `.team/vault/` is what the next mission on this project starts from. Close with a per-task summary from the board, what was promoted to the vault, and the amendments awaiting the human's decision.

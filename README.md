@@ -20,9 +20,9 @@ There's no orchestrator process and no framework underneath. Coordination is two
 - **`.team/TEAM.md`** — the single source of truth. A roster, a task board, and a decision log, edited in place by whoever is working.
 - **Claude Code's session message bus** — wakeups and questions only, never state. Nobody polls anybody, and members talk to each other directly rather than routing everything through the lead.
 
-Alongside the board, `.team/` collects what the team agrees and proves: `CONTRACT.md` for interfaces and file ownership, `INTEGRATION.md` for the finish line, `evidence/` for how each task was checked, `briefs/` and `handoffs/` for how members arrive and leave.
+Alongside the board, `.team/` collects what the team agrees and proves: `CONTRACT.md` for interfaces and file ownership, `INTEGRATION.md` for the finish line, `evidence/` for how each task was checked, `briefs/` and `handoffs/` for how members arrive and leave. One directory outlives the mission: **`.team/vault/`**, the project's memory across missions — short indexed notes and reusable scripts that every new member reads before starting, so a lesson learned or a probe written once is never rebuilt. It is plain markdown with wikilinks, so an Obsidian vault opens it as-is.
 
-A few rules make it hold together: members claim a task on the board before touching anything, one owner per task; "done" means checked against the mission's verification bar with the evidence noted on the board, not "looks finished"; and when a member has spent most of its context — at a task boundary, not mid-work — it writes a handoff doc and spawns its own successor, so the team outlives any single context window. The full ruleset is in [`PROTOCOL.md`](skills/teamwork/PROTOCOL.md) — it's short, and every member reads it first.
+A few rules make it hold together: members claim a task on the board before touching anything, one owner per task; "done" means checked against the mission's verification bar with the evidence noted on the board, not "looks finished"; when a member has spent most of its context — at a task boundary, not mid-work — it writes a handoff doc and spawns its own successor, so the team outlives any single context window; and before teardown the lead runs a retrospective that promotes what the mission learned into the vault and proposes amendments to the protocol itself. The full ruleset is in [`PROTOCOL.md`](skills/teamwork/PROTOCOL.md) — it's short, and every member reads it first.
 
 ## Install
 
@@ -68,6 +68,7 @@ Then watch it go. Useful things to know while a mission runs:
 - Ask the anchor for status any time — it answers from `TEAM.md` and the handoff docs without interrupting anyone.
 - Steering ("actually, skip the admin routes") goes through the anchor too. The lead re-plans the board.
 - Every member is a real Claude Code session in its own tmux session. `tmux ls` shows them as `team-<slug>-<role>`, and `tmux attach -t team-<slug>-lead` drops you into any of them. Detach with `Ctrl+b d`.
+- The lead picks a model per member — Opus for the roles that are all judgment, Sonnet for well-specified work against a settled contract — and records it on the roster. Say which models you allow when the mission starts; it's the `Models:` line in `TEAM.md`, and it's the second lever on quota after headcount.
 - When the lead reports done, the anchor re-verifies independently before presenting the result to you. Feedback loops back through the board until you accept, and teardown kills the tmux sessions. `.team/` stays behind as the mission record.
 
 ## A real mission
@@ -99,6 +100,8 @@ Most multi-agent setups put an orchestrator in charge and make every agent repor
 Roughly in order:
 
 - [x] **Configurable spawn command.** ~~The spawn pattern hardcodes `claude --dangerously-skip-permissions`.~~ Done: the command lives on the `Spawn:` line of `.team/TEAM.md`, set once per mission by the anchor.
+- [x] **A vault across missions.** ~~Everything a mission learns is archived with its board.~~ Done: `.team/vault/` persists, handoffs and a closing retrospective promote lessons and instruments into it, and every member reads its index first.
+- [x] **Per-member models.** Done: the lead chooses a model per role within the `Models:` line, recorded on the roster.
 - [ ] **Agent-agnostic protocol.** The board is already just a markdown file any agent can edit. What's Claude Code-only is the wakeup channel (`ListAgents`/`SendMessage`) and the spawn command — needs a file-based wakeup fallback for agents without session messaging, then testing against other agents that read skill folders (Codex, Cursor, OpenCode).
 - [ ] **Mixed teams.** Once the protocol is agent-agnostic: a Codex member and a Claude Code member claiming tasks off the same board.
 - [ ] **An asciinema recording.** The written case study is in [`case-study/`](case-study/) with the real `TEAM.md`; what's still missing is a screen recording of a mission actually running.

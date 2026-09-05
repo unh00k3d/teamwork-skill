@@ -6,11 +6,24 @@ You are a member of a team of Claude Code sessions sharing one machine, one file
 
 Three sections, edited in place (template at the bottom):
 
-- **Roster** — one line per member: session name (from ListAgents), tmux session, role, status (active / paused / handing-off / retired), and the `[ref]` its name needs.
+- **Roster** — one line per member: session name (from ListAgents), tmux session, role, model, status (active / paused / handing-off / retired), and the `[ref]` its name needs.
 - **Board** — one line per task: id, description, status (open / claimed / done), owner, verification (how done was checked, against the mission's bar).
 - **Decisions** — dated one-liners for choices that bind everyone: the mission's verification bar (set first), interfaces, conventions, scope calls.
 
 One row per task, edited in place — a board that grows a second row for an id has stopped being a source of truth. Detail does not live here: the `verification` column cites a file under `.team/evidence/`, long-lived agreements live in `.team/CONTRACT.md` (interfaces, schemas, file ownership — binding, changed only through the lead), and a Decision's reasoning goes in the evidence file rather than the line. The anchor re-reads TEAM.md for every status question, so its size is a cost the whole team pays.
+
+## Vault
+
+`.team/vault/` is what this project's missions have learned, kept for the next one. TEAM.md is archived between missions; the vault stays. Read it through `INDEX.md` — one line per entry — and open the entries that touch your seam. Two kinds of entry:
+
+- **Notes** — `vault/notes/<slug>.md`: a lesson, a pattern, or a fact about this codebase that a future member would otherwise re-derive. Frontmatter: `name`, `description` (the index line), `kind` (lesson / pattern / codebase), `mission`, `date`, `verified` (what it was checked against). Body: the fact, then **Why** and **How to apply**. Link related entries with `[[slug]]`.
+- **Instruments** — `vault/instruments/<name>/`: a script that proves something — a driver, a probe, a fixture generator — with a `README.md` stating what it proves, how to run it, which instrument faults it guards against, and when it was last verified. The lead cites them in the verification bar where they apply, so a mission starts with the previous mission's instruments instead of rebuilding them.
+
+The vault fills by **promotion**. Entries arrive at two moments: the *For the next mission* section of a handoff, and the retrospective at the close (§Retrospective). Until one of those, a Decision, a finding, or an instrument you just built lives in the mission's own files — and a Decision that says "preserve for v2" or "the transferable part" is a promotion candidate, tagged so the retrospective finds it. Team knowledge goes to the vault and only there: Claude Code's auto-memory is keyed by working directory, so every member would be writing into one unindexed folder.
+
+An entry is a claim by a session that is gone. Its `verified` line says what it was true against; an entry you find wrong gets corrected and re-dated, because the next reader has no way to know. An instrument earns trust the way any instrument does — run it against something it should fail on before believing its pass; a script carried across missions is where fault (8), the stale artefact serving a previous build, lives.
+
+The `Vault:` line in TEAM.md may name a second, global vault after the project one (`~/.claude/teamwork-vault`, say) for lessons about the protocol and the tooling rather than this codebase. Read it the same way; promote there only entries that would be true on another project.
 
 ## Claiming
 
@@ -71,7 +84,9 @@ tmux send-keys -t team-<slug>-<role> Enter
 
 `<spawn command>` is not hardcoded here — it is the **Spawn** line at the top of `.team/TEAM.md`, set once by the anchor for the whole mission (default `claude --dangerously-skip-permissions`; see §Permissions for what a stricter one changes). Use it verbatim, and never substitute your own flags: the permission mode is the human's decision, made once, and a member that quietly spawns a more permissive successor has widened a blast radius the human sized.
 
-Text and Enter are two separate send-keys calls — a single call's trailing Enter is swallowed by paste handling. For the same reason the brief itself does not travel through `send-keys`: **write it to `.team/briefs/<role>.md` and send a one-line pointer** — "you are <role> on team <slug>; read `.team/briefs/<role>.md` in full, then `.team/PROTOCOL.md` and `.team/TEAM.md`". A brief long enough to be useful is long enough to arrive mangled. The brief carries: read `.team/PROTOCOL.md` then `.team/TEAM.md` before anything else; your role and the seam it owns; **the members whose seams touch yours — name, ref, and what each owns**; the anchor's and your spawner's names. Naming only the lead and the anchor is how a team becomes a star: a member talks to the sessions it was told about. The newcomer's first act after reading is registering itself on the roster and introducing itself to its neighbours; the spawner then broadcasts the arrival. A member is joined when it appears on the roster.
+**Model.** Each member runs on a model the lead chose for its role: append `--model <model>` — an alias such as `opus` or `sonnet`, or a full model id (`claude --help` lists the current ones) — to the Spawn line's command. The model flag is an addition; the permission mode on the Spawn line stays exactly as written. The lead chooses when it plans the board, inside whatever the `Models:` line in TEAM.md allows, and records the choice in the roster's `model` column; a spawner uses the roster's choice, and a successor inherits its predecessor's unless the handoff says otherwise. Choose by the shape of the work. Judgment goes to the strongest model: the lead itself, design, anything that audits another member's surface, anything where the contract is still being discovered. Well-specified work against a settled contract — porting, wiring a route to a schema, test scaffolding, evidence re-capture — goes to a cheaper one. This is the team's second sizing lever after headcount: every member spends the one shared quota at a rate that differs several-fold between models, so a mission that would exhaust the day with six Opus members may run it out with two Opus and four Sonnet.
+
+Text and Enter are two separate send-keys calls — a single call's trailing Enter is swallowed by paste handling. For the same reason the brief itself does not travel through `send-keys`: **write it to `.team/briefs/<role>.md` and send a one-line pointer** — "you are <role> on team <slug>; read `.team/briefs/<role>.md` in full, then `.team/PROTOCOL.md` and `.team/TEAM.md`". A brief long enough to be useful is long enough to arrive mangled. The brief carries: read `.team/PROTOCOL.md`, then `.team/TEAM.md`, then `.team/vault/INDEX.md` before anything else; your role and the seam it owns; **the members whose seams touch yours — name, ref, and what each owns**; the anchor's and your spawner's names. Naming only the lead and the anchor is how a team becomes a star: a member talks to the sessions it was told about. The newcomer's first act after reading is registering itself on the roster and introducing itself to its neighbours; the spawner then broadcasts the arrival. A member is joined when it appears on the roster.
 
 ## Handoff
 
@@ -83,16 +98,27 @@ To see where you are, read your own status line: `tmux capture-pane -p -t <your 
 
 Then, to hand off:
 
-1. Write `.team/handoffs/<your-name>.md`: current state, decisions made, remaining work, file map, open questions.
+1. Write `.team/handoffs/<your-name>.md`: current state, decisions made, remaining work, file map, open questions — and a **For the next mission** section: what you would tell someone doing your role on a future mission, and which of your instruments are worth keeping. Promote those to `.team/vault/` yourself, index line included, before you go: your successor inherits your claims, not what you knew.
 2. Spawn your successor — same tmux pattern, exempt from the cap since it replaces you. Brief = your role + read your handoff doc first.
 3. Roster: mark yourself retired, add the successor.
 4. Broadcast the succession, then stop working — the successor owns your claims.
 
 The lead hands off like anyone else.
 
+## Retrospective
+
+Between mission-done and teardown, the lead runs the retrospective: the mission's learning, written for readers who were never here, into the files that will still be read.
+
+1. Lead broadcasts "retro". Every active member writes `.team/retro/<role>.md` — what broke on its seam, what it would tell its own replacement on a future mission, which of its instruments are worth keeping — and reports back.
+2. Lead reads those, the Decisions log, the handoffs and FOLLOW-UPS, and promotes: each transferable item becomes a vault note or instrument, dated, `verified` line filled, evidence file linked, `INDEX.md` updated. Mission detail — this board's ids, this mission's port, who owned what — stays in the mission record.
+3. Lead writes `.team/RETRO.md`: what happened, what it changed, and **proposed protocol amendments** — every rule the mission had to learn mid-flight, phrased as the line PROTOCOL.md should carry. The anchor puts those to the human; the protocol changes only through them.
+4. Lead commits `.team/vault/`, `.team/retro/` and `.team/RETRO.md`, and reports retro-done to the anchor.
+
+Done when the anchor has spot-read the promoted entries — each cites evidence, each reads correctly to someone who never saw this board — and the sessions can be torn down.
+
 ## Roles
 
-- **Lead**: sets the mission's verification bar as the first Decision, breaks the mission into board tasks, assembles the team, unblocks members, sweeps the roster for liveness, keeps an eye on how much context members have left (`tmux capture-pane` reads a status line without interrupting anyone) and tells one to hand off when it hasn't noticed, owns the whole-mission integration check against that bar — **written up in `.team/INTEGRATION.md` when the bar is set, not when the work ends**, so every member can see the finish line it is building toward and the mission sentence gets checked clause by clause rather than from memory — calls the end of the work, reports milestones and blockers to the anchor. How to divide the work is the lead's call — split along whatever seams keep members out of each other's way: file boundaries for code, subtopics or sources for research, targets or surfaces for security. Record the **adjacencies** as well as the split — which task consumes which — because that is where members will need each other, and it is what their briefs must name. Re-plan the board at each milestone: the first split is a hypothesis, not the plan, and a board only ever appended to turns later work into a stream of ad-hoc discoveries.
+- **Lead**: sets the mission's verification bar as the first Decision, breaks the mission into board tasks, assembles the team, unblocks members, sweeps the roster for liveness, keeps an eye on how much context members have left (`tmux capture-pane` reads a status line without interrupting anyone) and tells one to hand off when it hasn't noticed, owns the whole-mission integration check against that bar — **written up in `.team/INTEGRATION.md` when the bar is set, not when the work ends**, so every member can see the finish line it is building toward and the mission sentence gets checked clause by clause rather than from memory — calls the end of the work, reports milestones and blockers to the anchor, chooses each member's model (§Spawning a member), and runs the retrospective before teardown. How to divide the work is the lead's call — split along whatever seams keep members out of each other's way: file boundaries for code, subtopics or sources for research, targets or surfaces for security. Record the **adjacencies** as well as the split — which task consumes which — because that is where members will need each other, and it is what their briefs must name. Re-plan the board at each milestone: the first split is a hypothesis, not the plan, and a board only ever appended to turns later work into a stream of ad-hoc discoveries.
 
   **The lead's hands are `.team/`.** TEAM.md, CONTRACT.md, the briefs, the integration and follow-up records: those it writes. It reads anything. It does not edit the work — a lead holding a claim is a member, and the second claim is always easier than the first. The integration check is **read-only**: run the gates, probe, and put every defect you find back on the board with an owner. Fixing it yourself turns an integration check into a workstream. A task small enough to `sed` is small enough to hand to whoever owns those files. A lead that respawns to an empty roster has a staffing emergency, not a licence to become the team. One check catches all of it: **if your shell calls outnumber your messages, you have stopped leading** — a first mission's lead ran 1.5 shell calls per message, and its successor ran 4.2, which is a member's ratio.
 
@@ -111,10 +137,12 @@ When the Spawn line names a stricter mode, a prompt you cannot pass = mark the t
     # Team: <slug>
     Mission: <mission>
     Spawn: <the command each member's tmux session runs, e.g. claude --dangerously-skip-permissions>
+    Models: <models members may run, e.g. opus sonnet — the lead picks per member>
+    Vault: .team/vault[, <global vault path>]
 
     ## Roster
-    | name [ref] | tmux | role | status |
-    |---|---|---|---|
+    | name [ref] | tmux | role | model | status |
+    |---|---|---|---|---|
 
     ## Board
     | id | task | status | owner | verification |
