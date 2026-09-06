@@ -22,6 +22,7 @@ Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's bas
 - `.team/TEAM.md` — from the template at the bottom of PROTOCOL.md, mission and slug filled in, plus the **Spawn** line: the command every member's tmux session runs. Default `claude --dangerously-skip-permissions`. It is the human's call, not yours — if they've said anything about permissions, or the mission touches anything they'd want to approve by hand, ask before defaulting. Every member reads this line instead of a flag baked into the protocol, so changing it changes the whole team.
 - `.team/CONTRACT.md` — empty; the lead fills it with interfaces, schemas and file ownership.
 - `.team/FOLLOW-UPS.md` — empty; where work found after the finish goes to wait for the human.
+- `.team/DECISIONS.md` — empty; where the lead rotates Decisions that are settled or superseded, so TEAM.md's log stays the size everyone can afford to re-read (PROTOCOL §TEAM.md).
 - `.team/briefs/`, `.team/evidence/`, `.team/handoffs/`, `.team/retro/` — empty.
 - `.team/vault/` — the project's memory across missions (PROTOCOL §Vault): `INDEX.md`, `notes/`, `instruments/`. Create it only if absent. An existing vault is the one part of `.team/` that is scaffolding, not history — leave it exactly as the previous mission left it.
 
@@ -42,6 +43,29 @@ The lead is live when capture-pane shows the brief submitted and the lead appear
 While the team works, the human asks you for status and gives steering:
 
 - Answer status questions from `.team/TEAM.md` and the handoff docs first — reading files interrupts nobody. Ask the lead via SendMessage only for what the files can't answer.
+- **Watch the panes, not just the board.** Two things never reach `.team/` and never get reported: how much context each member has left, and whether it is actually working. Neither is visible from inside a member's own seam (PROTOCOL §Handoff, §Liveness). One sweep reads both, costs nothing, and interrupts nobody:
+
+  ```sh
+  for t in $(tmux ls -F '#S' | grep "^team-<slug>-"); do
+    c=$(tmux capture-pane -p -t "$t" | sed 's/\xc2\xa0/ /g' | grep -o 'Ctx: *[0-9.]*k' | tail -1)
+    printf '%-28s %s\n' "$t" "${c:-NO READING — read this pane by hand}"
+  done
+  ```
+
+  The `sed` is load-bearing: the status line separates its fields with **non-breaking spaces**, so the obvious `grep -o 'Ctx: [0-9.]*k'` matches nothing and prints a tidy empty column for every member. Written without it, this snippet reports a healthy-looking team that it never actually measured — which is why the fallback shouts instead of printing blank. Dry-run any version of this against one pane whose number you have read with your own eyes before you trust a run of it.
+
+  Run it with every status question, and leave it running between times — same shape as the quota wake below, so a member crossing the band is found rather than discovered:
+
+  ```sh
+  nohup sh -c 'while sleep 180; do
+      for t in $(tmux ls -F "#S" | grep "^team-<slug>-"); do
+        c=$(tmux capture-pane -p -t "$t" | sed "s/\xc2\xa0/ /g" | grep -o "Ctx: *[0-9.]*k" | tail -1)
+        echo "$(date +%H:%M) $t ${c:-NO-READING}"
+      done
+    done' >> /tmp/<slug>-liveness.log 2>&1 &
+  ```
+
+  Then read that log rather than guessing: a context number that has stopped moving is a member idle or dead, and one past 300k is a handoff for the lead to order. A second mission ran five sessions to 253k, 264k, 320k, 352k and 421k with an empty `handoffs/` directory, and one of them blocked and unnoticed — all of it visible in this one command.
 - Relay the human's steering — scope changes, priorities — to the lead, who re-plans the board.
 - A teammate reporting a stalled permission prompt: hand the human its attach command (`tmux attach -t team-<slug>-<role>`, detach Ctrl+b d). Answering a teammate's prompt yourself, or routing a declined action to another member, bypasses the human's permission decision.
 - A request for a member beyond the cap of 6 lands here: put it to the human, don't decide it.
@@ -70,6 +94,6 @@ Feedback loops back the way steering does: relay it to the lead, who turns it in
 
 ## 6. Retrospective and teardown
 
-On acceptance, tell the lead to run the retrospective (PROTOCOL §Retrospective) — it comes before teardown, because the members who know what broke are the ones about to be killed. When the lead reports retro-done, spot-read `.team/RETRO.md` and the newly promoted vault entries: each note cites its evidence, none carries this mission's ids or ports as if they were facts about the project, and the index has a line for each. Put the proposed protocol amendments to the human as they stand — the protocol changes through them, not through the team.
+On acceptance, tell the lead to run the retrospective (PROTOCOL §Retrospective) — it comes before teardown, because the members who know what broke are the ones about to be killed. **Write your own `.team/retro/anchor.md` while they write theirs.** Every member writes from inside its own seam; the run itself is what none of them can see (PROTOCOL §Retrospective step 2). Your pane sweep and your liveness log are that record, and no one else has it. When the lead reports retro-done, spot-read `.team/RETRO.md` and the newly promoted vault entries: each note cites its evidence, none carries this mission's ids or ports as if they were facts about the project, and the index has a line for each. Put the proposed protocol amendments to the human as they stand — the protocol changes through them, not through the team.
 
 Then `tmux kill-session -t <tmux>` for every roster member. Complete when `tmux ls` shows no `team-<slug>-*` sessions. `.team/` stays as the mission record, and `.team/vault/` is what the next mission on this project starts from. Close with a per-task summary from the board, what was promoted to the vault, and the amendments awaiting the human's decision.
