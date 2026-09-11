@@ -54,6 +54,7 @@ Around the board, `.team/` holds everything the team agrees, proves, and remembe
 ├── TEAM.md          Spawn / Models / Vault header lines, roster, board, decisions
 ├── CONTRACT.md      interfaces, schemas, file ownership — binding, changed only via the lead
 ├── DECISIONS.md     settled decisions rotated out of the board, so TEAM.md carries only what still binds
+├── PROTOCOL-HISTORY.md  protocol text a retro amendment superseded — kept and dated, never deleted
 ├── INTEGRATION.md   the finish line, written when the bar is set, not when the work ends
 ├── FOLLOW-UPS.md    everything found after the finish, waiting for you to triage
 ├── RETRO.md         what happened, what it changed, proposed protocol amendments
@@ -86,7 +87,7 @@ Everything above is scoped to one mission and archived when the next one starts 
 
 It fills by promotion, not by free writing. Two moments put things in: the *For the next mission* section of every handoff, and the retrospective at the close. Each entry carries what it was verified against, because it is a claim by a session that is gone; a member that finds one wrong corrects it. It is plain markdown with `[[wikilinks]]`, so an Obsidian vault opens it as-is. A `Vault:` line in `TEAM.md` can point at a second, global vault for lessons that cross projects.
 
-The retrospective also produces **proposed protocol amendments** — rules the mission had to learn mid-flight, phrased as the line `PROTOCOL.md` should carry. They go to you, not into the protocol; the first mission's amendments are how most of the current protocol got written.
+The retrospective also produces **proposed protocol amendments** — rules the mission had to learn mid-flight, phrased as the line `PROTOCOL.md` should carry. They go to you, not into the protocol; the first mission's amendments are how most of the current protocol got written. But a document that only ever gets amended only ever grows, so the pipeline is gated against itself: the retro runs a compaction pass first, each proposal must justify why the protocol — and not a lighter home — is where it belongs, and any rule it replaces rotates to `PROTOCOL-HISTORY.md` rather than being silently dropped. A protocol nobody can afford to re-read has stopped being a source of truth.
 
 ## Models and quota
 

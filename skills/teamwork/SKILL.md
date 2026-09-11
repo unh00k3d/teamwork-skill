@@ -23,6 +23,7 @@ Pick a short mission slug. Read `PROTOCOL.md` beside this file (this skill's bas
 - `.team/CONTRACT.md` — empty; the lead fills it with interfaces, schemas and file ownership.
 - `.team/FOLLOW-UPS.md` — empty; where work found after the finish goes to wait for the human.
 - `.team/DECISIONS.md` — empty; where the lead rotates Decisions that are settled or superseded, so TEAM.md's log stays the size everyone can afford to re-read (PROTOCOL §TEAM.md).
+- `.team/PROTOCOL-HISTORY.md` — empty; the cold archive for protocol text a retro amendment supersedes (PROTOCOL §Retrospective). When an amendment replaces standing protocol, the superseded text rotates here in the same edit — kept and dated, never deleted — the same discipline as DECISIONS.md, so the protocol can be compacted without silently dropping a rule.
 - `.team/briefs/`, `.team/evidence/`, `.team/handoffs/`, `.team/retro/` — empty.
 - `.team/vault/` — the project's memory across missions (PROTOCOL §Vault): `INDEX.md`, `notes/`, `instruments/`. Create it only if absent. An existing vault is the one part of `.team/` that is scaffolding, not history — leave it exactly as the previous mission left it.
 
@@ -48,11 +49,14 @@ While the team works, the human asks you for status and gives steering:
   ```sh
   for t in $(tmux ls -F '#S' | grep "^team-<slug>-"); do
     c=$(tmux capture-pane -p -t "$t" | sed 's/\xc2\xa0/ /g' | grep -o 'Ctx: *[0-9.]*k' | tail -1)
-    printf '%-28s %s\n' "$t" "${c:-NO READING — read this pane by hand}"
+    n=$(printf '%s' "$c" | grep -o '[0-9.]*')
+    flag=''
+    [ -n "$n" ] && awk "BEGIN{exit !($n>300)}" && flag='  ← PAST-BAND: hand off (§Handoff)'
+    printf '%-28s %s%s\n' "$t" "${c:-NO READING — read this pane by hand}" "$flag"
   done
   ```
 
-  The `sed` is load-bearing: the status line separates its fields with **non-breaking spaces**, so the obvious `grep -o 'Ctx: [0-9.]*k'` matches nothing and prints a tidy empty column for every member. Written without it, this snippet reports a healthy-looking team that it never actually measured — which is why the fallback shouts instead of printing blank. Dry-run any version of this against one pane whose number you have read with your own eyes before you trust a run of it.
+  The `sed` is load-bearing: the status line separates its fields with **non-breaking spaces**, so the obvious `grep -o 'Ctx: [0-9.]*k'` matches nothing and prints a tidy empty column for every member. Written without it, this snippet reports a healthy-looking team that it never actually measured — which is why the fallback shouts instead of printing blank. Dry-run any version of this against one pane whose number you have read with your own eyes before you trust a run of it. The `grep "^team-<slug>-"` matches **every** team pane — the lead's alongside the members' — so PAST-BAND flags the lead too, the one seam that can't call its own handoff; the anchor sequences it (PROTOCOL §Handoff). A reading that has **stopped moving across ticks** in the log below is a lapsed lease (PROTOCOL §Liveness): read that pane before acting on it — a zombie and a quota-pause look identical here, and a quota-pause is never a kill.
 
   Run it with every status question, and leave it running between times — same shape as the quota wake below, so a member crossing the band is found rather than discovered:
 
@@ -82,6 +86,7 @@ While the team works, the human asks you for status and gives steering:
 
   Tell the human the reset time as well — they may want the machine doing something else until then.
 - Watch that the lead is leading. If it is reporting its own commits rather than its members', it has stopped staffing and started building — say so, to it.
+- **You don't do the work.** Never claim a task, edit the tree, or run the build as your own — that independence is what keeps your acceptance re-check (§5) honest. Your name in a board `owner` column is a mechanical error to flag; the slip that leaves no trace is touching files with no claim at all, so this is a self-check — reaching to fix something yourself means route it to the lead instead.
 
 Teammate messages wake you; the board carries the rest. Poll nothing.
 
@@ -95,6 +100,6 @@ Feedback loops back the way steering does: relay it to the lead, who turns it in
 
 ## 6. Retrospective and teardown
 
-On acceptance, tell the lead to run the retrospective (PROTOCOL §Retrospective) — it comes before teardown, because the members who know what broke are the ones about to be killed. **Write your own `.team/retro/anchor.md` while they write theirs.** Every member writes from inside its own seam; the run itself is what none of them can see (PROTOCOL §Retrospective step 2). Your pane sweep and your liveness log are that record, and no one else has it. When the lead reports retro-done, spot-read `.team/RETRO.md` and the newly promoted vault entries: each note cites its evidence, none carries this mission's ids or ports as if they were facts about the project, and the index has a line for each. Put the proposed protocol amendments to the human as they stand — the protocol changes through them, not through the team.
+On acceptance, tell the lead to run the retrospective (PROTOCOL §Retrospective) — it comes before teardown, because the members who know what broke are the ones about to be killed. **Write your own `.team/retro/anchor.md` while they write theirs.** Every member writes from inside its own seam; the run itself is what none of them can see (PROTOCOL §Retrospective step 2). Your pane sweep and your liveness log are that record, and no one else has it. When the lead reports retro-done, spot-read `.team/RETRO.md` and the newly promoted vault entries: each note cites its evidence, none carries this mission's ids or ports as if they were facts about the project, and the index has a line for each. **The retro proposes protocol amendments — gate them before they reach the human (PROTOCOL §Retrospective).** Each proposal carries a `Home:` field justifying its target file and a `Supersedes:` field naming the text it replaces. Reject an unjustified `PROTOCOL` home yourself: a fix that belongs in the SKILL, a specialist skill, or a vault convention goes back there rather than swelling the coordination protocol — and confirm any superseding amendment rotated the text it replaced into `.team/PROTOCOL-HISTORY.md` rather than deleting it. Only the proposals that earn the protocol reach the human — the protocol changes through them, not through the team.
 
 Then `tmux kill-session -t <tmux>` for every roster member. Complete when `tmux ls` shows no `team-<slug>-*` sessions. `.team/` stays as the mission record, and `.team/vault/` is what the next mission on this project starts from. Close with a per-task summary from the board, what was promoted to the vault, and the amendments awaiting the human's decision.
