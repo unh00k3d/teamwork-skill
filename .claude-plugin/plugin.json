@@ -1,7 +1,7 @@
 {
   "name": "teamwork",
   "description": "Run big missions with a self-organizing team of Claude Code sessions: an anchor, a spawned lead, and up to six members coordinating through a shared board.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "unh00k3d",
     "url": "https://github.com/unh00k3d"
